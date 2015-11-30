@@ -12,8 +12,8 @@
 #include <stdarg.h> //For the printError() function
 
 // Private functions prototypes
-int isValidPinNumber(int);
-void printError(char *, ...);
+static int isValidPinNumber(int);
+static void printError(char *, ...);
 
 
 //*****************************************************************************
@@ -26,16 +26,39 @@ void printError(char *, ...);
  * @return	an int corresponding to the pin state (0 or 1)
  */
 int GIPY_pinRead(int pPin){
-	//#define GPIO_PIN_VAL_FILE(S,P)	sprintf(S, "%sgpio%d/value", GPIO_PATH, P)
-	return 1;
+	//Check if pin is valid
+	if(isValidPinNumber(pPin)==FALSE){
+		printError("Invalid pin number: %d", pPin);
+		return -1;
+	}
+
+	//Create the GPIO value path and try to open it
+	char stamp[BUFSIZ];
+	sprintf(stamp, GPIO_PATH"gpio%d/value", pPin);
+	int file = open(stamp, O_RDONLY);
+	if(file < 1){
+		printError("Unable to open the file: %s", stamp);
+		return -1;
+	}
+	
+	char buff = 'a';
+	int n;
+	if((n = read(file, &buff, 1)) == -1){
+		close(file);
+		printError("Unable to read from file: %s", stamp);
+		return -1;
+	}
+	close(file);
+	return buff-'0'; //n equals read value
 }
 
 /**
  * @brief	Write a value for a specific GPIO Pin
- * @detail	The pin must have been enabled before!
+ * @detail	The pin must have been enabled before. If the value given is not 
+ * 			valid, the process is stopped and return the error state
  *
  * @param	Pin number where to write
- * @param	Value to set to this pin (From pinValue enum)
+ * @param	Value to set to this pin (should be from pinValue enum)
  * @return	1 if successfully written, otherwise, return -1
  */
 int GIPY_pinWrite(int pPin, pinValue pValue){
@@ -45,9 +68,15 @@ int GIPY_pinWrite(int pPin, pinValue pValue){
 		return -1;
 	}
 
+	//check whether the pValue is valid
+	if(pValue != LOGIC_ZERO && pValue != LOGIC_ONE){
+		printError("Invalid value (%d) for pin: %d", pValue, pPin);
+		return -1;
+	}
+
 	//Create the GPIO value path and try to open it
 	char stamp[BUFSIZ];
-	sprintf(stamp, GPIO_PATH"%dgpio/value", pPin);
+	sprintf(stamp, GPIO_PATH"gpio%d/value", pPin);
 	int file = open(stamp, O_WRONLY);
 	if(file < 1){
 		printError("Unable to open the file: %s", stamp);
@@ -55,7 +84,14 @@ int GIPY_pinWrite(int pPin, pinValue pValue){
 	}
 
 	//Try to write the value in the GPIO value file
-	//write(stamp, "%d", pValue);
+	char buff[2];
+	sprintf(buff, "%d", pValue);
+	if(write(file, buff, 2) != 2){
+		printError("Unable to write the value %d in file %s", pValue, stamp);
+		close(file);
+		return -1;
+	}
+	close(file);
 	return 1;
 }
 
@@ -88,8 +124,10 @@ int GIPY_pinEnable(int pPin){
 	sprintf(tamp, "%d", pPin);
 	if(write(file, tamp, 3) != 3){
 		printError("Unable to write the value in the file for pin %d", pPin);
+		close(file);
 		return -1;
 	}
+	close(file);
 	return 1;
 }
 
@@ -103,8 +141,8 @@ int GIPY_pinEnable(int pPin){
  * @param int the pin number
  * @return 1 if valid, otherwise, return -1
  */
-int isValidPinNumber(int pPin){
-	int validPins[NB_PINS] = {PINS_AVAILABLE};
+static int isValidPinNumber(int pPin){
+	static int validPins[NB_PINS] = {PINS_AVAILABLE}; //Init at first call
 	int k = 0;
 	for(k=0; k<NB_PINS; k++){
 		if(validPins[k] == pPin){
@@ -119,7 +157,7 @@ int isValidPinNumber(int pPin){
  *
  * @param message with specific format
  */
-void printError(char *fmt, ...){
+static void printError(char *fmt, ...){
 	va_list	args;
 	va_start(args, fmt);
 	fprintf(stderr, "[ERR]: ");
@@ -127,5 +165,3 @@ void printError(char *fmt, ...){
 	fprintf(stderr, "\n");
 	va_end(args);
 }
-
-

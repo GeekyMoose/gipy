@@ -24,15 +24,12 @@ int main(int argc, char **argv){
 		printf("argv[%d] = %s\n", k, argv[k]);
 	}
 
-	if(argc > 1){
-		int		pin		= argv[1];
-		pinVal	val		= LOGICAL_ZERO;
-		GIPY_pinEnable(pin);
-		if(argc > 2){
-			pinVal = argv[2];
-		}
-		GIPY_pinWrite(pin, pinVal);
-	}
+	int pin = 18;
+	pinValue val = LOGIC_ONE;
+	GIPY_pinEnable(pin);
+	GIPY_pinWrite(pin, val);
+	int val2 = GIPY_pinRead(pin);
+	printf("Value : %d\n", val2);
 
 	printf("\n***** End *****\n\n");
 	return EXIT_SUCCESS;
