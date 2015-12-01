@@ -1,19 +1,14 @@
 /*
  * ****************************************************************************
  * GIPY Library
- * ****************************************************************************
  * Manage Raspberry Pi GPIO
  *
- * @data	Nov 29, 2015
- * @author	Constantin MASSON <constantin.grinda@gmail.com>
+ * Data:	Nov 29, 2015
+ * Author:	Constantin MASSON <constantin.grinda@gmail.com>
+ * ****************************************************************************
  */
 
 #include "gipy.h"
-#include <stdarg.h> //For the printError() function
-
-// Private functions prototypes
-static int isValidPinNumber(int);
-static void printError(char *, ...);
 
 
 //*****************************************************************************
@@ -152,16 +147,3 @@ static int isValidPinNumber(int pPin){
 	return FALSE;
 }
 
-/**
- * @brief display an error on the stderr with special format
- *
- * @param message with specific format
- */
-static void printError(char *fmt, ...){
-	va_list	args;
-	va_start(args, fmt);
-	fprintf(stderr, "[ERR]: ");
-	vfprintf(stderr, fmt, args);
-	fprintf(stderr, "\n");
-	va_end(args);
-}

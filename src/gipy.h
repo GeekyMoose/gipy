@@ -12,13 +12,14 @@
 #ifndef _HEADER_GIPY_H_
 #define _HEADER_GIPY_H_
 
-
 //General include (External lib)
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+
+#include "errman.h" //Error management
 
 
 //*****************************************************************************
@@ -33,28 +34,28 @@
 #define NB_PINS 17
 
 
+//*****************************************************************************
+// STRUCTURES
+//*****************************************************************************
 /** @brief Describe the possible values of a GPIO pin */
 typedef enum {
-	LOGIC_ZERO	= 0x0,
-	LOGIC_ONE	= 0x1
+	LOGIC_ZERO, LOGIC_ONE
 } pinValue;
 
-//@TODO
-enum PinDirection {
+/** @brief Describe the possible pin direction of a GPIO pin */
+typedef enum {
 	IN, OUT, LOW, HIGH
-};
+} pinType;
 
-//@TODO
-enum PinEdge {
+/** @brief Describe the pin edge possibilities */
+typedef enum {
 	NONE, RISING, FALLING, BOTH
-};
+} pinEdge;
 
 
 //*****************************************************************************
-// MACRO
+// MACRO - DEBUG MACRO
 //*****************************************************************************
-#define dbgInfo() sprintf(stderr, "[DBG]: %s:%d", __FILE__, __LINE__);
-
 
 //*****************************************************************************
 // Function Prototypes
@@ -62,6 +63,10 @@ enum PinEdge {
 int GIPY_pinRead(int);
 int GIPY_pinWrite(int, pinValue);
 int GIPY_pinEnable(int);
+int GIPY_pinDisable(int);
+
+// Private functions prototypes
+static int isValidPinNumber(int);
 
 #endif
 
