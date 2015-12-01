@@ -23,6 +23,7 @@
 int GIPY_pinRead(int pPin){
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
+		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin)); //Deleted if debug not set
 		printError("Invalid pin number: %d", pPin);
 		return -1;
 	}
@@ -32,6 +33,7 @@ int GIPY_pinRead(int pPin){
 	sprintf(stamp, GPIO_PATH"gpio%d/value", pPin);
 	int file = open(stamp, O_RDONLY);
 	if(file < 1){
+		dbgError((DBG_PARAMS, "Unable to open the file: %s", stamp)); //Deleted if debug not set
 		printError("Unable to open the file: %s", stamp);
 		return -1;
 	}

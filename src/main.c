@@ -7,6 +7,8 @@
  * Author : Constantin MASSON
  */
 
+#define DEBUG_MODE //Enable debug mode
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,6 +27,7 @@ int main(int argc, char **argv){
 	}
 
 	int			pin		= 18;
+	//int			pin		= 190;
 	pinValue	val		= LOGIC_ONE;
 	pinValue	val2;
 

@@ -23,6 +23,7 @@
 
 #define DEBUG_STREAM stdout //Default debug stream output
 #define ERROR_STREAM stderr //Default error stream output
+#define DBG_PARAMS DEBUG_STREAM, __FILE__, __LINE__
 
 
 // ****************************************************************************
@@ -39,13 +40,13 @@
  * in souce code, x must be surrounded by ()
  * For example, dbgError(("a message and int val=%d", val));
  */
-#define dbgError(x) dbgPrint(DEBUG_STREAM, __FILE__, __LINE__, x)
+#define dbgError(x) dbgPrint x
 
 /**
  * @def dbgMessage(x)
  * Display a simple dbg message
  */
-#define dbgMessage(x) dbgPrint(DEBUG_STREAM, __FILE__, __LINE__, x)
+#define dbgMessage(x) dbgPrint x
 
 
 //If debug mode is not set, all dbg functions are disabled
@@ -66,7 +67,7 @@
  * @param ...	Print format
  * @return	void
  */
-void printError(char *fmt, ...){
+void printError(const char *fmt, ...){
 	va_list	args;
 	va_start(args, fmt);
 	fprintf(stderr, "[ERR]: ");
