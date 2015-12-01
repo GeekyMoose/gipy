@@ -96,6 +96,22 @@ int GIPY_pinDisable(int pPin){
 // Pin Configuration Functions
 //*****************************************************************************
 
+int GIPY_pinSetDirectionIn(int pPin){
+	return GIPY_pinSetDirection(pPin, IN);
+}
+
+int GIPY_pinSetDirectionOut(int pPin){
+	return GIPY_pinSetDirection(pPin, OUT);
+}
+
+int GIPY_pinSetDirectionLow(int pPin){
+	return GIPY_pinSetDirection(pPin, LOW);
+}
+
+int GIPY_pinSetDirectionHigh(int pPin){
+	return GIPY_pinSetDirection(pPin, HIGH);
+}
+
 /**
  * @brief			Set the pin direction
  * @details			If direction is not valid, nothing is done
