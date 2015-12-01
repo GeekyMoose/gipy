@@ -58,11 +58,19 @@ typedef enum {
 //*****************************************************************************
 int GIPY_pinEnable(int);
 int GIPY_pinDisable(int);
+
 int GIPY_pinSetDirectionIn(int);
 int GIPY_pinSetDirectionOut(int);
 int GIPY_pinSetDirectionLow(int);
 int GIPY_pinSetDirectionHigh(int);
 int GIPY_pinSetDirection(int, pinDirection);
+
+int GIPY_pinSetEdgeNone(int);
+int GIPY_pinSetEdgeRising(int);
+int GIPY_pinSetEdgeFalling(int);
+int GIPY_pinSetEdgeBoth(int);
+int GIPY_pinSetEdge(int, pinEdge);
+
 int GIPY_pinRead(int);
 int GIPY_pinWrite(int, pinValue);
 

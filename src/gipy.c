@@ -93,21 +93,44 @@ int GIPY_pinDisable(int pPin){
 
 
 //*****************************************************************************
-// Pin Configuration Functions
+// Pin set direction functions
 //*****************************************************************************
-
+/**
+ * @brief			Set the pin direction to In 
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
 int GIPY_pinSetDirectionIn(int pPin){
 	return GIPY_pinSetDirection(pPin, IN);
 }
 
+/**
+ * @brief			Set the pin direction to Out
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
 int GIPY_pinSetDirectionOut(int pPin){
 	return GIPY_pinSetDirection(pPin, OUT);
 }
 
+/**
+ * @brief			Set the pin direction to low
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
 int GIPY_pinSetDirectionLow(int pPin){
 	return GIPY_pinSetDirection(pPin, LOW);
 }
 
+/**
+ * @brief			Set the pin direction to high
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
 int GIPY_pinSetDirectionHigh(int pPin){
 	return GIPY_pinSetDirection(pPin, HIGH);
 }
@@ -174,8 +197,110 @@ int GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
 }
 
 
+// ****************************************************************************
+// GPIO set edge functions
+// ****************************************************************************
+
+/**
+ * @brief			Set edge of the given pin to None
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetEdgeNone(int pPin){
+	return GIPY_pinSetEdge(pPin, NONE);
+}
+
+/**
+ * @brief			Set edge of the given pin to Rising
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetEdgeRising(int pPin){
+	return GIPY_pinSetEdge(pPin, RISING);
+}
+
+/**
+ * @brief			Set edge of the given pin to falling
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetEdgeFalling(int pPin){
+	return GIPY_pinSetEdge(pPin, FALLING);
+}
+
+/**
+ * @brief			Set edge of the given pin to both
+ *
+ * @param pPin		Pin to set
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetEdgeBoth(int pPin){
+	return GIPY_pinSetEdge(pPin, BOTH);
+}
+
+/**
+ * @brief			Set the edge for a given pin
+ * @detail			If the given edge is not valid, edge 'none' will be set
+ *
+ * @param pPin		Pin to set
+ * @param pEdge		Edge to set (From pinEdge enum)
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetEdge(int pPin, pinEdge pEdge){
+	dbgMessage((DBG_PARAMS, "[START] Try to set the edge (Pin: %d, value: %d)", pPin, pEdge));
+
+	//Check whether the pin is valid
+	if(isValidPinNumber(pPin)==FALSE){
+		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
+		printError("Unable to set edge: invalid pin (%d)", pPin);
+		return -1;
+	}
+
+	//Open the edge file
+	char stamp[BUFSIZ];
+	sprintf(stamp, GPIO_PATH"/gpio%d/edge", pPin);
+	int file = open(stamp, O_WRONLY);
+	if(file == -1){
+		dbgError((DBG_PARAMS, "Unreachable file %s", stamp));
+		printError("Unable to set the edge for pin %d", pPin);
+		return -1;
+	}
+
+	//Try to write new edge in opened file
+	int writeError;
+	switch(pEdge){
+		case RISING:
+			writeError = (write(file, "rising", 7) == 7) ? 1 : 0;
+			break;
+		case FALLING:
+			writeError = (write(file, "falling", 8) == 8) ? 1 : 0;
+			break;
+		case BOTH:
+			writeError = (write(file, "both", 5) == 5) ? 1 : 0;
+			break;
+		default:
+			writeError = (write(file, "none", 5) == 5) ? 1 : 0;
+			break;
+	}
+
+	//Check whether write process success
+	if(writeError != 1){
+		close(file);
+		dbgError((DBG_PARAMS, "Unable to write in %s with value %d", stamp, pEdge));
+		printError("Unable to set pin %d edge!", pPin);
+		return -1;
+	}
+	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] Pin %d edge set", pPin));
+	return 1;
+}
+
+
 //*****************************************************************************
-// GPIO Acces Functions
+// GPIO Read / Write functions
 //*****************************************************************************
 /**
  * @brief	Read the value from a specific pin

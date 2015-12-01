@@ -27,18 +27,25 @@ int main(int argc, char **argv){
 	}
 
 	int			pin		= 18;
-	//int			pin		= 190;
 	pinValue	val		= LOGIC_ONE;
 	pinValue	val2;
 
 	GIPY_pinEnable(pin);
 	GIPY_pinWrite(pin, val);
 	val2 = GIPY_pinRead(pin);
+
+	//Direction test
 	GIPY_pinSetDirection(pin, LOW);
 	GIPY_pinSetDirectionIn(pin);
 	GIPY_pinSetDirectionOut(pin);
 	GIPY_pinSetDirectionLow(pin);
 	GIPY_pinSetDirectionHigh(pin);
+	
+	//Edge test
+	GIPY_pinSetEdgeNone(pin);
+	GIPY_pinSetEdgeRising(pin);
+	GIPY_pinSetEdgeFalling(pin);
+	GIPY_pinSetEdgeBoth(pin);
 
 	printf("Value : %d\n", val2);
 
