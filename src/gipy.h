@@ -45,7 +45,7 @@ typedef enum {
 /** @brief Describe the possible pin direction of a GPIO pin */
 typedef enum {
 	IN, OUT, LOW, HIGH
-} pinType;
+} pinDirection;
 
 /** @brief Describe the pin edge possibilities */
 typedef enum {
@@ -54,16 +54,12 @@ typedef enum {
 
 
 //*****************************************************************************
-// MACRO - DEBUG MACRO
-//*****************************************************************************
-
-//*****************************************************************************
 // Function Prototypes
 //*****************************************************************************
-int GIPY_pinRead(int);
-int GIPY_pinWrite(int, pinValue);
 int GIPY_pinEnable(int);
 int GIPY_pinDisable(int);
+int GIPY_pinRead(int);
+int GIPY_pinWrite(int, pinValue);
 
 // Private functions prototypes
 static int isValidPinNumber(int);

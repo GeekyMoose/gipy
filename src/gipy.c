@@ -22,7 +22,7 @@
  * @return		1 if successfully enabled otherwise, return -1
  */
 int GIPY_pinEnable(int pPin){
-	dbgMessage((DBG_PARAMS, "Try to enable pin %d", pPin));
+	dbgMessage((DBG_PARAMS, "[START] Try to enable pin %d", pPin));
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -49,6 +49,7 @@ int GIPY_pinEnable(int pPin){
 		return -1;
 	}
 	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] Success: pin %d enabled", pPin));
 	return 1;
 }
 
@@ -59,7 +60,7 @@ int GIPY_pinEnable(int pPin){
  * @return		1 if successfully disabled, otherwise, return -1
  */
 int GIPY_pinDisable(int pPin){
-	dbgMessage((DBG_PARAMS, "Try to disable pin %d", pPin));
+	dbgMessage((DBG_PARAMS, "[START] Try to disable pin %d", pPin));
 
 	//Check whether pin number is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -86,6 +87,73 @@ int GIPY_pinDisable(int pPin){
 		return -1;
 	}
 	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] pin %d disabled", pPin));
+	return 1;
+}
+
+
+//*****************************************************************************
+// Pin Configuration Functions
+//*****************************************************************************
+
+/**
+ * @brief			Set the pin direction
+ * @details			If direction is not valid, nothing is done
+ *
+ * @param pPin		Pin to set
+ * @param pPinDir	Direction to set (From PinDirection enum)
+ * @return			1 if successfully set, otherwise, return -1
+ */
+int GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
+	dbgMessage((DBG_PARAMS, "[START] Try to change direction pin %d to %d", pPin, pPinDir));
+
+	//Check whether pin number is valid
+	if(isValidPinNumber(pPin)==FALSE){
+		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
+		printError("Unable to set pin %d direction! Invalid pin", pPin);
+		return -1;
+	}
+
+	//Open direction folder
+	char stamp[BUFSIZ];
+	sprintf(stamp, GPIO_PATH"/gpio%d/direction", pPin);
+	int file = open(stamp, O_WRONLY);
+	if(file<1){
+		dbgError((DBG_PARAMS, "Unreachable file %s for pin %d", stamp, pPin));
+		printError("Unable to set pin %d direction!", pPin);
+		return -1;
+	}
+
+	//Try to write the new direction in file according to dir parameter
+	int writeError;
+	switch(pPinDir){
+		case IN:
+			writeError = (write(file, "in", 3) == 3) ? 1 : -1;
+			break;
+		case OUT:
+			writeError = (write(file, "out", 4) == 4) ? 1 : -1;
+			break;
+		case LOW:
+			writeError = (write(file, "low", 3) == 3) ? 1 : -1;
+			break;
+		case HIGH:
+			writeError = (write(file, "high", 5) == 5) ? 1 : -1;
+			break;
+		//Default mean the pin dir is not valid
+		default:
+			writeError = -1;
+			break;
+	}
+
+	//Check the write process was successfully done
+	if(writeError != 1){
+		close(file);
+		dbgError((DBG_PARAMS, "Unable to write in %s with value %d", stamp, pPinDir));
+		printError("Unable to set pin %d direction!", pPin);
+		return -1;
+	}
+	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] Direction pin %d is now %d", pPin, pPinDir));
 	return 1;
 }
 
@@ -100,7 +168,7 @@ int GIPY_pinDisable(int pPin){
  * @return		Int value corresponding to the pin state (0 or 1)
  */
 int GIPY_pinRead(int pPin){
-	dbgMessage((DBG_PARAMS, "Try to read pin %d", pPin));
+	dbgMessage((DBG_PARAMS, "[START] Try to read pin %d", pPin));
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -129,6 +197,7 @@ int GIPY_pinRead(int pPin){
 		return -1;
 	}
 	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] to read pin %d", pPin));
 	return buff-'0'; //n equals read value
 }
 
@@ -142,7 +211,7 @@ int GIPY_pinRead(int pPin){
  * @return			1 if successfully written, otherwise, return -1
  */
 int GIPY_pinWrite(int pPin, pinValue pValue){
-	dbgMessage((DBG_PARAMS, "Try to write in pin %d", pPin));
+	dbgMessage((DBG_PARAMS, "[START] Try to write in pin %d", pPin));
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -178,6 +247,7 @@ int GIPY_pinWrite(int pPin, pinValue pValue){
 		return -1;
 	}
 	close(file);
+	dbgMessage((DBG_PARAMS, "[SUCCESS] Successfully written in pin %d", pPin));
 	return 1;
 }
 

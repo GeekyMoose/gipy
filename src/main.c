@@ -34,6 +34,7 @@ int main(int argc, char **argv){
 	GIPY_pinEnable(pin);
 	GIPY_pinWrite(pin, val);
 	val2 = GIPY_pinRead(pin);
+	GIPY_pinSetDirection(pin, LOW);
 
 	printf("Value : %d\n", val2);
 
