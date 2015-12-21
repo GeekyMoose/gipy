@@ -1,5 +1,6 @@
 # Other
 build
+bin
 
 # Object files
 *.o

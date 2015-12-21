@@ -20,6 +20,7 @@
 #include <string.h>
 
 #include "errman.h" //Error management
+#include "debug.h" //Debug lib
 
 
 //*****************************************************************************
@@ -27,7 +28,12 @@
 //*****************************************************************************
 #define TRUE	1
 #define FALSE	0
-#define GPIO_PATH "/home/caribou/Documents/w-work/data/sys/class/gpio/"
+#define GPIO_PATH "/home/geekymoose/Documents/w-work/data/sys/class/gpio/"
+#define GPIO_PATH_EXPORT		GPIO_PATH"export"
+#define GPIO_PATH_UNEXPORT		GPIO_PATH"unexport"
+#define GPIO_PATH_DIRECTION		GPIO_PATH"gpio%d/direction"
+#define GPIO_PATH_EDGE			GPIO_PATH"gpio%d/edge"
+#define GPIO_PATH_VALUE			GPIO_PATH"gpio%d/value"
 
 //Pin management
 #define PINS_AVAILABLE 2,3,4,7,8,9,10,11,14,15,17,18,22,23,24,25,27
@@ -56,28 +62,27 @@ typedef enum {
 //*****************************************************************************
 // Function Prototypes
 //*****************************************************************************
-int GIPY_pinEnable(int);
-int GIPY_pinDisable(int);
+pirror GIPY_pinEnable(int);
+pirror GIPY_pinDisable(int);
 
-int GIPY_pinSetDirectionIn(int);
-int GIPY_pinSetDirectionOut(int);
-int GIPY_pinSetDirectionLow(int);
-int GIPY_pinSetDirectionHigh(int);
-int GIPY_pinSetDirection(int, pinDirection);
+pirror GIPY_pinSetDirectionIn(int);
+pirror GIPY_pinSetDirectionOut(int);
+pirror GIPY_pinSetDirectionLow(int);
+pirror GIPY_pinSetDirectionHigh(int);
+pirror GIPY_pinSetDirection(int, pinDirection);
 
-int GIPY_pinSetEdgeNone(int);
-int GIPY_pinSetEdgeRising(int);
-int GIPY_pinSetEdgeFalling(int);
-int GIPY_pinSetEdgeBoth(int);
-int GIPY_pinSetEdge(int, pinEdge);
+pirror GIPY_pinSetEdgeNone(int);
+pirror GIPY_pinSetEdgeRising(int);
+pirror GIPY_pinSetEdgeFalling(int);
+pirror GIPY_pinSetEdgeBoth(int);
+pirror GIPY_pinSetEdge(int, pinEdge);
 
-int GIPY_pinRead(int);
-int GIPY_pinWrite(int, pinValue);
-
-// Private functions prototypes
-static int isValidPinNumber(int);
+pirror GIPY_pinRead(int, int*);
+pirror GIPY_pinWrite(int, pinValue);
 
 #endif
+
+
 
 
 

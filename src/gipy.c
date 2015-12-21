@@ -9,86 +9,82 @@
  */
 
 #include "gipy.h"
-#include "errman.h"
+
+//Private function
+static int isValidPinNumber(const int);
 
 
 //*****************************************************************************
 // GPIO Export / Unexport functions
 //*****************************************************************************
 /**
- * @brief		Enable a GPIO Pin.
+ * @brief			Enable a GPIO Pin.
  *
- * @param pPin	int the pin int number value
- * @return		1 if successfully enabled otherwise, return -1
+ * @param pPin		int the pin int number value
+ * @return			pirror value. (GE_PIN / GE_OPIMP / GE_OK)
  */
-int GIPY_pinEnable(int pPin){
-	dbgMessage((DBG_PARAMS, "[START] Try to enable pin %d", pPin));
+pirror GIPY_pinEnable(int pPin){
+	dbgInfo("Try to enable pin %d", pPin);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to enable the pin %d: invalid pin number", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//Open the export sys file, check if successfully opened
-	int file = open(GPIO_PATH"/export", O_WRONLY);
+	int file = open(GPIO_PATH_EXPORT, O_WRONLY);
 	if(file == -1){
-		dbgError((DBG_PARAMS, "Unreachable export file: "GPIO_PATH"/export"));
-		printError("Unable to enable the pin %d", pPin);
-		return -1;
+		dbgError("Unreachable export file: "GPIO_PATH_EXPORT);
+		return GE_OPIMP;
 	}
 
 	//Write into file that this pin is set
 	char tamp[3];
 	sprintf(tamp, "%d", pPin);
 	if(write(file, tamp, 3) != 3){
-		dbgError((DBG_PARAMS, "Unable to write %d in "GPIO_PATH"/export", pPin));
-		printError("Unable to enable the pin %d", pPin);
+		dbgError("Unable to write %d in file: "GPIO_PATH_EXPORT, pPin);
 		close(file);
-		return -1;
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] Success: pin %d enabled", pPin));
-	return 1;
+	dbgInfo("Pin %d enabled", pPin);
+	return GE_OK;
 }
 
 /**
- * @brief		Disable a pin
+ * @brief			Disable a pin
  *
- * @param pPin	Pin to disable
- * @return		1 if successfully disabled, otherwise, return -1
+ * @param pPin		Pin to disable
+ * @return			pirror value. (GE_PIN / GE_OPIMP / GE_OK)
  */
-int GIPY_pinDisable(int pPin){
-	dbgMessage((DBG_PARAMS, "[START] Try to disable pin %d", pPin));
+pirror GIPY_pinDisable(int pPin){
+	dbgInfo("Try to disbale pin %d", pPin);
 
 	//Check whether pin number is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to disable pin %d! Invalid pin", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//Try to open unexport file
-	int file = open(GPIO_PATH"/unexport", O_WRONLY);
-	if(file<0){
-		dbgError((DBG_PARAMS, "Unreachable file: %s", GPIO_PATH"/unexport"));
-		printError("Unable to disable the pin %d", pPin);
-		return -1;
+	int file = open(GPIO_PATH_UNEXPORT, O_WRONLY);
+	if(file == -1){
+		dbgError("Unreachable export file: "GPIO_PATH_UNEXPORT);
+		return GE_OPIMP;
 	}
 
 	//Write into file that this pin is set
 	char tamp[3];
 	sprintf(tamp, "%d", pPin);
 	if(write(file, tamp, 3) != 3){
-		dbgError((DBG_PARAMS, "Unable to write %d in "GPIO_PATH"/unexport", pPin));
-		printError("Unable to disable the pin %d", pPin);
+		dbgError("Unable to write %d in "GPIO_PATH_UNEXPORT, pPin);
 		close(file);
-		return -1;
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] pin %d disabled", pPin));
-	return 1;
+	dbgInfo("Pin %d disabled", pPin);
+	return GE_OK;
 }
 
 
@@ -99,9 +95,9 @@ int GIPY_pinDisable(int pPin){
  * @brief			Set the pin direction to In 
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror status (GE_OK / GE_PIN / GE_OPIMP / GE_PINDIR)
  */
-int GIPY_pinSetDirectionIn(int pPin){
+pirror GIPY_pinSetDirectionIn(int pPin){
 	return GIPY_pinSetDirection(pPin, IN);
 }
 
@@ -109,9 +105,9 @@ int GIPY_pinSetDirectionIn(int pPin){
  * @brief			Set the pin direction to Out
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror status (GE_OK / GE_PIN / GE_OPIMP / GE_PINDIR)
  */
-int GIPY_pinSetDirectionOut(int pPin){
+pirror GIPY_pinSetDirectionOut(int pPin){
 	return GIPY_pinSetDirection(pPin, OUT);
 }
 
@@ -119,9 +115,9 @@ int GIPY_pinSetDirectionOut(int pPin){
  * @brief			Set the pin direction to low
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror status (GE_OK / GE_PIN / GE_OPIMP / GE_PINDIR)
  */
-int GIPY_pinSetDirectionLow(int pPin){
+pirror GIPY_pinSetDirectionLow(int pPin){
 	return GIPY_pinSetDirection(pPin, LOW);
 }
 
@@ -129,9 +125,9 @@ int GIPY_pinSetDirectionLow(int pPin){
  * @brief			Set the pin direction to high
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror status (GE_OK / GE_PIN / GE_OPIMP / GE_PINDIR)
  */
-int GIPY_pinSetDirectionHigh(int pPin){
+pirror GIPY_pinSetDirectionHigh(int pPin){
 	return GIPY_pinSetDirection(pPin, HIGH);
 }
 
@@ -141,26 +137,24 @@ int GIPY_pinSetDirectionHigh(int pPin){
  *
  * @param pPin		Pin to set
  * @param pPinDir	Direction to set (From PinDirection enum)
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror status (GE_OK / GE_PIN / GE_OPIMP / GE_PINDIR)
  */
-int GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
-	dbgMessage((DBG_PARAMS, "[START] Try to change direction pin %d to %d", pPin, pPinDir));
+pirror GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
+	dbgInfo("Try to change direction pin %d to %d", pPin, pPinDir);
 
 	//Check whether pin number is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to set pin %d direction! Invalid pin", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//Open direction folder
 	char stamp[BUFSIZ];
-	sprintf(stamp, GPIO_PATH"/gpio%d/direction", pPin);
+	sprintf(stamp, GPIO_PATH_DIRECTION, pPin);
 	int file = open(stamp, O_WRONLY);
-	if(file<1){
-		dbgError((DBG_PARAMS, "Unreachable file %s for pin %d", stamp, pPin));
-		printError("Unable to set pin %d direction!", pPin);
-		return -1;
+	if(file == -1){
+		dbgError("Unreachable file %s for pin %d", stamp, pPin);
+		return GE_OPIMP;
 	}
 
 	//Try to write the new direction in file according to dir parameter
@@ -180,20 +174,21 @@ int GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
 			break;
 		//Default mean the pin dir is not valid
 		default:
-			writeError = -1;
+			close(file);
+			dbgError("Invalid pin dir");
+			writeError = GE_PINDIR;
 			break;
 	}
 
 	//Check the write process was successfully done
 	if(writeError != 1){
 		close(file);
-		dbgError((DBG_PARAMS, "Unable to write in %s with value %d", stamp, pPinDir));
-		printError("Unable to set pin %d direction!", pPin);
-		return -1;
+		dbgError("Unable to write in %s with value %d", stamp, pPinDir);
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] Direction pin %d is now %d", pPin, pPinDir));
-	return 1;
+	dbgInfo("Direction pin %d is now %d", pPin, pPinDir);
+	return GE_OK;
 }
 
 
@@ -205,9 +200,9 @@ int GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
  * @brief			Set edge of the given pin to None
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror (GE_OK / GE_PIN / GE_OPIMP)
  */
-int GIPY_pinSetEdgeNone(int pPin){
+pirror GIPY_pinSetEdgeNone(int pPin){
 	return GIPY_pinSetEdge(pPin, NONE);
 }
 
@@ -215,9 +210,9 @@ int GIPY_pinSetEdgeNone(int pPin){
  * @brief			Set edge of the given pin to Rising
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror (GE_OK / GE_PIN / GE_OPIMP)
  */
-int GIPY_pinSetEdgeRising(int pPin){
+pirror GIPY_pinSetEdgeRising(int pPin){
 	return GIPY_pinSetEdge(pPin, RISING);
 }
 
@@ -225,9 +220,9 @@ int GIPY_pinSetEdgeRising(int pPin){
  * @brief			Set edge of the given pin to falling
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror (GE_OK / GE_PIN / GE_OPIMP)
  */
-int GIPY_pinSetEdgeFalling(int pPin){
+pirror GIPY_pinSetEdgeFalling(int pPin){
 	return GIPY_pinSetEdge(pPin, FALLING);
 }
 
@@ -235,9 +230,9 @@ int GIPY_pinSetEdgeFalling(int pPin){
  * @brief			Set edge of the given pin to both
  *
  * @param pPin		Pin to set
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror (GE_OK / GE_PIN / GE_OPIMP)
  */
-int GIPY_pinSetEdgeBoth(int pPin){
+pirror GIPY_pinSetEdgeBoth(int pPin){
 	return GIPY_pinSetEdge(pPin, BOTH);
 }
 
@@ -247,26 +242,24 @@ int GIPY_pinSetEdgeBoth(int pPin){
  *
  * @param pPin		Pin to set
  * @param pEdge		Edge to set (From pinEdge enum)
- * @return			1 if successfully set, otherwise, return -1
+ * @return			pirror (GE_OK / GE_PIN / GE_OPIMP)
  */
-int GIPY_pinSetEdge(int pPin, pinEdge pEdge){
-	dbgMessage((DBG_PARAMS, "[START] Try to set the edge (Pin: %d, value: %d)", pPin, pEdge));
+pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
+	dbgInfo("Try to set the edge (Pin: %d, value: %d)", pPin, pEdge);
 
 	//Check whether the pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to set edge: invalid pin (%d)", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//Open the edge file
 	char stamp[BUFSIZ];
-	sprintf(stamp, GPIO_PATH"/gpio%d/edge", pPin);
+	sprintf(stamp, GPIO_PATH_EDGE, pPin);
 	int file = open(stamp, O_WRONLY);
 	if(file == -1){
-		dbgError((DBG_PARAMS, "Unreachable file %s", stamp));
-		printError("Unable to set the edge for pin %d", pPin);
-		return -1;
+		dbgError("Unreachable edge file %s", stamp);
+		return GE_OPIMP;
 	}
 
 	//Try to write new edge in opened file
@@ -289,13 +282,12 @@ int GIPY_pinSetEdge(int pPin, pinEdge pEdge){
 	//Check whether write process success
 	if(writeError != 1){
 		close(file);
-		dbgError((DBG_PARAMS, "Unable to write in %s with value %d", stamp, pEdge));
-		printError("Unable to set pin %d edge!", pPin);
-		return -1;
+		dbgError("Unable to write in %s with value %d", stamp, pEdge);
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] Pin %d edge set", pPin));
-	return 1;
+	dbgInfo("Pin %d edge set", pPin);
+	return GE_OK;
 }
 
 
@@ -303,29 +295,28 @@ int GIPY_pinSetEdge(int pPin, pinEdge pEdge){
 // GPIO Read / Write functions
 //*****************************************************************************
 /**
- * @brief	Read the value from a specific pin
+ * @brief		Read the value from a specific pin
  *
  * @param pPin	int the pin number where to read
- * @return		Int value corresponding to the pin state (0 or 1)
+ * @param pRead	Read value to fill (Pointer)
+ * @return		pirror (GE_OK, GE_PIN, GE_OPIMP)
  */
-int GIPY_pinRead(int pPin){
-	dbgMessage((DBG_PARAMS, "[START] Try to read pin %d", pPin));
+pirror GIPY_pinRead(int pPin, int *pRead){
+	dbgInfo("Try to read pin %d", pPin);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to read from pin %d! Invalid pin", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//Create the GPIO value path and try to open it
 	char stamp[BUFSIZ];
-	sprintf(stamp, GPIO_PATH"gpio%d/value", pPin);
+	sprintf(stamp, GPIO_PATH_VALUE, pPin);
 	int file = open(stamp, O_RDONLY);
-	if(file < 1){
-		dbgError((DBG_PARAMS, "Unable to open the file: %s", stamp));
-		printError("Unable to read from pin %d", pPin);
-		return -1;
+	if(file == -1){
+		dbgError("Unable to open the file: %s", stamp);
+		return GE_OPIMP;
 	}
 	
 	//Read from the file
@@ -333,13 +324,13 @@ int GIPY_pinRead(int pPin){
 	int n;
 	if((n = read(file, &buff, 1)) == -1){
 		close(file);
-		dbgError((DBG_PARAMS, "Unable to read from file: %s", stamp));
-		printError("Unable to read from pin %d", pPin);
-		return -1;
+		dbgError("Unable to read from file: %s", stamp);
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] to read pin %d", pPin));
-	return buff-'0'; //n equals read value
+	*pRead = buff-'0'; //n equals read value
+	dbgInfo("Pin %d read, value: %d", pPin, *pRead);
+	return GE_OK;
 }
 
 /**
@@ -349,33 +340,30 @@ int GIPY_pinRead(int pPin){
  *
  * @param pPin		Pin number where to write
  * @param pValue	Value to set to this pin (should be from pinValue enum)
- * @return			1 if successfully written, otherwise, return -1
+ * @param			pirror (GE_OK / GE_PIN / GE_PARAM)
  */
-int GIPY_pinWrite(int pPin, pinValue pValue){
-	dbgMessage((DBG_PARAMS, "[START] Try to write in pin %d", pPin));
+pirror GIPY_pinWrite(int pPin, pinValue pValue){
+	dbgInfo("Try to write in pin %d", pPin);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
-		dbgError((DBG_PARAMS, "Invalid pin number: %d", pPin));
-		printError("Unable to write in %d! Invalid pin!", pPin);
-		return -1;
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
 	}
 
 	//check whether the pValue is valid
 	if(pValue != LOGIC_ZERO && pValue != LOGIC_ONE){
-		dbgError((DBG_PARAMS, "Invalid value (%d) for pin: %d", pValue, pPin));
-		printError("Invalid value (%d) for pin: %d", pValue, pPin);
-		return -1;
+		dbgError("Invalid value (%d) for pin: %d", pValue, pPin);
+		return GE_PINVAL;
 	}
 
 	//Create the GPIO value path and try to open it
 	char stamp[BUFSIZ];
-	sprintf(stamp, GPIO_PATH"gpio%d/value", pPin);
+	sprintf(stamp, GPIO_PATH_VALUE, pPin);
 	int file = open(stamp, O_WRONLY);
-	if(file < 1){
-		dbgError((DBG_PARAMS, "Unable to open the file: %s", stamp));
-		printError("Unable to write in pin %d", pPin);
-		return -1;
+	if(file == -1){
+		dbgError("Unable to open the file: %s", stamp);
+		return GE_OPIMP;
 	}
 
 	//Try to write the value in the GPIO value file
@@ -383,13 +371,12 @@ int GIPY_pinWrite(int pPin, pinValue pValue){
 	sprintf(buff, "%d", pValue);
 	if(write(file, buff, 2) != 2){
 		close(file);
-		dbgError((DBG_PARAMS, "Unable to write the value %d in file %s", pValue, stamp));
-		printError("Unable to write in pin %d", pPin);
-		return -1;
+		dbgError("Unable to write the value %d in file %s", pValue, stamp);
+		return GE_OPIMP;
 	}
 	close(file);
-	dbgMessage((DBG_PARAMS, "[SUCCESS] Successfully written in pin %d", pPin));
-	return 1;
+	dbgInfo("Successfully written in pin %d", pPin);
+	return GE_OK;
 }
 
 
@@ -402,8 +389,8 @@ int GIPY_pinWrite(int pPin, pinValue pValue){
  * @param	int the pin number
  * @return	1 if valid, otherwise, return -1
  */
-static int isValidPinNumber(int pPin){
-	static int validPins[NB_PINS] = {PINS_AVAILABLE}; //Init at first call
+static int isValidPinNumber(const int pPin){
+	static int validPins[NB_PINS] = {PINS_AVAILABLE}; //Init during first call
 	int k = 0;
 	for(k=0; k<NB_PINS; k++){
 		if(validPins[k] == pPin){

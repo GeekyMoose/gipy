@@ -1,35 +1,50 @@
 ##
+###############################################################################
 # GIPY Library makefile
+###############################################################################
+#
 ##
 
 # Define variables
 CC			= $(CROSS_COMPILER)gcc
 CF_FLAG		= -Wall -g
+VPATH		= src build
 
-BUILD		= build
 TARGET		= execGipy
-SRC			= src
+BUILD		= build
+BIN			= bin
+
 
 #SOURCES		= $(wildcard $(SRC)/**/*.c src/*.c) #Get all .c from src dir
 #OBJECTS		= $(patsubst %.c, %.o, $(SOURCES)) #Create the .o name from .c
 #build/$(TARGET): $(OBJECTS)
 #	$(CC) $(CF_FLAG) -o $@ $(SOURCES)
 
+
+###############################################################################
 # Build Rules
-$(BUILD)/$(TARGET): createBuild build/gipy.o build/main.o
-	$(CC) $(CF_FLAG) -o $(BUILD)/$(TARGET) $(BUILD)/main.o
+###############################################################################
+all: $(BUILD)/$(TARGET)
 
-$(BUILD)/gipy.o : $(SRC)/gipy.c src/gipy.h
-	$(CC) $(CF_FLAG) -c -o $(BUILD)/gipy.o $(SRC)/gipy.c
+$(BUILD)/$(TARGET): createBuild main.o gipy.o errman.o debug.o
+	$(CC) $(CF_FLAG) -o $(BIN)/$(TARGET) main.o gipy.o errman.o debug.o
 
-$(BUILD)/main.o : $(SRC)/main.c src/gipy.c src/gipy.h
-	$(CC) $(CF_FLAG) -c -o $(BUILD)/main.o $(SRC)/main.c
+$(BUILD)/main.o: main.c gipy.h errman.h debug.h
+	$(CC) $(CF_FLAG) -c main.c
 
-$(BUILD)/errman.o : $(SRC)/errman.h
-	$(CC) $(CF_FLAG) -c -o $(BUILD)/errman.o $(SRC)/errman.h
+$(BUILD)/gipy.o: gipy.c gipy.h errman.h debug.h
+	$(CC) $(CF_FLAG) -c gipy.c
 
-# Other rules
+$(BUILD)/errman.o: errman.c errman.h
+	$(CC) $(CF_FLAG) -c errman.c
 
+$(BUILD)/debug.o: debug.c debug.h
+	$(CC) $(CF_FLAG) -c debug.c
+
+
+###############################################################################
+# Comp / exc rules
+###############################################################################
 # Create the generated folders
 createBuild:
 	@mkdir -p $(BUILD)
@@ -37,4 +52,9 @@ createBuild:
 
 clean:
 	-rm -rf $(BUILD) bin
-	#$(RM) *.o *.out execGipy
+	-rm -r *.o
+	-rm -f *.exe
+
+run:
+	bin/$(TARGET)
+
