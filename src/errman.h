@@ -26,7 +26,9 @@
 typedef enum {
 	//General error
 	GE_OK = 0, //No error
-	GE_OPIMP, //Operation impossible
+	GE_PERM, //Operation not permitted
+	GE_NOENT, //No such file or directory
+	GE_IO, //Input / Output error
 	GE_PARAM, //Invalid parameters
 
 	//Pin specific error

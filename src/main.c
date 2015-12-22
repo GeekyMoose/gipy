@@ -23,9 +23,20 @@ int main(int argc, char **argv){
 	int			pin		= 18;
 	int			readValue;
 
-	GIPY_pinEnable(pin);
+	GIPY_pinExport(pin);
+	printf(" * Value default: %d\n", readValue);
+
 	GIPY_pinWrite(pin, LOGIC_ZERO);
 	GIPY_pinRead(pin, &readValue);
+	printf(" * Value after write LOGIC_ZERO: %d\n", readValue);
+
+	GIPY_pinWrite(pin, LOGIC_ONE);
+	GIPY_pinRead(pin, &readValue);
+	printf(" * Value after write LOGIC_ONE: %d\n", readValue);
+
+	GIPY_pinWrite(pin, LOGIC_ZERO);
+	GIPY_pinRead(pin, &readValue);
+	printf(" * Value after write LOGIC_ZERO: %d\n", readValue);
 
 	//Direction test
 	GIPY_pinSetDirection(pin, LOW);
@@ -40,7 +51,8 @@ int main(int argc, char **argv){
 	GIPY_pinSetEdgeFalling(pin);
 	GIPY_pinSetEdgeBoth(pin);
 
-	printf("Value : %d\n", readValue);
+
+	GIPY_pinUnexport(pin);
 
 	printf("\n***** End *****\n\n");
 	return EXIT_SUCCESS;

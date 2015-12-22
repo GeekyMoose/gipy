@@ -45,7 +45,8 @@
 //*****************************************************************************
 /** @brief Describe the possible values of a GPIO pin */
 typedef enum {
-	LOGIC_ZERO, LOGIC_ONE
+	LOGIC_ZERO = 0x00,
+	LOGIC_ONE = 0x01
 } pinValue;
 
 /** @brief Describe the possible pin direction of a GPIO pin */
@@ -62,8 +63,8 @@ typedef enum {
 //*****************************************************************************
 // Function Prototypes
 //*****************************************************************************
-pirror GIPY_pinEnable(int);
-pirror GIPY_pinDisable(int);
+pirror GIPY_pinExport(int);
+pirror GIPY_pinUnexport(int);
 
 pirror GIPY_pinSetDirectionIn(int);
 pirror GIPY_pinSetDirectionOut(int);
