@@ -237,16 +237,16 @@ pirror GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
 	int writeError;
 	switch(pPinDir){
 		case IN:
-			writeError = (write(file, "in", 3) == 3) ? 1 : -1;
+			writeError = (write(file, "in  ", 4) == 4) ? 1 : -1;
 			break;
 		case OUT:
-			writeError = (write(file, "out", 4) == 4) ? 1 : -1;
+			writeError = (write(file, "out ", 4) == 4) ? 1 : -1;
 			break;
 		case LOW:
-			writeError = (write(file, "low", 3) == 3) ? 1 : -1;
+			writeError = (write(file, "low ", 4) == 4) ? 1 : -1;
 			break;
 		case HIGH:
-			writeError = (write(file, "high", 5) == 5) ? 1 : -1;
+			writeError = (write(file, "high", 4) == 4) ? 1 : -1;
 			break;
 		default:
 			//Default mean the pin dir is not valid
@@ -358,7 +358,7 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
 	//Open the edge file
 	char stamp[BUFSIZ];
 	sprintf(stamp, GPIO_PATH_EDGE, pPin);
-	int file = open(stamp, O_WRONLY);
+	int file = open(stamp, O_RDWR);
 	if(file == -1){
 		dbgError("Unable to open (Write) edge file %s", stamp);
 		return GE_NOENT;
@@ -366,18 +366,19 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
 
 	//Try to write new edge in opened file
 	int writeError;
+	//NOTE: the spaces are important to delete old content (Might be a better way)
 	switch(pEdge){
 		case RISING:
-			writeError = (write(file, "rising", 7) == 7) ? 1 : 0;
+			writeError = (write(file, "rising ", 7) == 7) ? 1 : 0;
 			break;
 		case FALLING:
-			writeError = (write(file, "falling", 8) == 8) ? 1 : 0;
+			writeError = (write(file, "falling", 7) == 7) ? 1 : 0;
 			break;
 		case BOTH:
-			writeError = (write(file, "both", 5) == 5) ? 1 : 0;
+			writeError = (write(file, "both   ", 7) == 7) ? 1 : 0;
 			break;
 		default:
-			writeError = (write(file, "none", 5) == 5) ? 1 : 0;
+			writeError = (write(file, "none   ", 7) == 7) ? 1 : 0;
 			break;
 	}
 
@@ -469,7 +470,7 @@ pirror GIPY_pinWrite(int pPin, pinValue pValue){
 	//try to write the value in the gpio value file
 	char buff = (char) (pValue+'0');
 	lseek(valueFds[pPin], 0, SEEK_SET); //Go back beginning file
-	if(write(valueFds[pPin], &buff, 1) == 10){
+	if(write(valueFds[pPin], &buff, 1) != 1){
 		dbgError("Unable to write in value file for pin: %d", pPin);
 		return GE_IO;
 	}
