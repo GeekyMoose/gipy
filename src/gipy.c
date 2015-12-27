@@ -408,7 +408,7 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
  * @return GE_IO	If unable to read from value file
  */
 pirror GIPY_pinRead(int pPin, int *pRead){
-	dbgInfo("Try to read pin %d (File: %d)", pPin, valueFds[pPin]);
+	dbgInfo("Try to read pin %d (df: %d)", pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -447,7 +447,7 @@ pirror GIPY_pinRead(int pPin, int *pRead){
  * @return GE_IO		If unable to read from value file
  */
 pirror GIPY_pinWrite(int pPin, pinValue pValue){
-	dbgInfo("Try to write %d in pin %d (File: %d)", pValue, pPin, valueFds[pPin]);
+	dbgInfo("Try to write %d in pin %d (df: %d)", pValue, pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -483,15 +483,16 @@ pirror GIPY_pinWrite(int pPin, pinValue pValue){
 // Interrupt functions
 //*****************************************************************************
 /**
- * @brief		Create an interrupt for specific pin
- * @details		At most one interrupt can be created for a pin
- * 				Attention: if this pin already got an interrupt set, it will 
- * 				be lost and replaced by this new one
+ * @brief				Create an interrupt for specific pin
+ * @details				At most one interrupt can be created for a pin
+ * 						Attention: if this pin already got an interrupt set, 
+ * 						it will be lost and replaced by this new one.
  *
- * @param
+ * @param				pin linked with interrupt
+ * @param				function to execut if interrupt generated
  * @return GE_OK		If no error
+ * @return GE_PIN		If invalid pin number
  * @return GE_PERM		If pin not exported
- * @return GE_PINDIR	If the pin direction is not valid
  */
 pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 	dbgInfo("Try to create interrupt for pin %d", pPin);
@@ -513,6 +514,16 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 	pthread_create(&threadId, NULL, pinInterruptHandler, pPin);
 }
 
+/**
+ * @brief			create the pin interrupt process for a pin
+ * @details			Private function. Called by the public create interrupt 
+ * 					function. This function is executed inside a thread. 
+ * 					If interrupt generated, the function isrFunctions is 
+ * 					executed for given pin.
+ *
+ * @param			pin to link with an interrupt process
+ * @return void
+ */
 static void pinInterruptHandler(const int pPin){
 	dbgInfo("Start pinInterruptHandler for pin %d", pPin);
 	struct pollfd pollstruct;
@@ -520,7 +531,7 @@ static void pinInterruptHandler(const int pPin){
 	pollstruct.events	= POLLPRI;
 	pollstruct.revents	= POLLPRI;
 
-	char buff;
+	//Loop blocked by poll. Wait for any event and call function if interrupt
 	for(;;){
 		dbgInfo("* Wait for event (pin: %d, df: %d)", pPin, pollstruct.fd);
 		//If the pin has been unexported since the interrupt creation
@@ -529,10 +540,11 @@ static void pinInterruptHandler(const int pPin){
 			break; //Stop interrupt handling
 		}
 
-		lseek(pollstruct.fd, 0, SEEK_SET);
-		int x = poll(&pollstruct, 0x00, -1);
-		if(x > 0){
+		//If an event is detected, call isr function
+		if(poll(&pollstruct, 1, -1) > 0){
+			dbgInfo("Poll pin %d, df %d", pPin, pollstruct.fd);
 			//Dummy read to clear the interrupt
+			char buff;
 			read(pollstruct.fd, &buff, 1);
 			lseek(pollstruct.fd, 0, SEEK_SET);
 			isrFunctions[pPin]();
