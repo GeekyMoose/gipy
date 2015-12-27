@@ -15,6 +15,7 @@
 // Privat header (Static function / Vars)
 //*****************************************************************************
 static int isValidPinNumber(const int);
+static void pinInterruptHandler(const int);
 
 
 /*
@@ -33,7 +34,7 @@ static int valueFds[30] = {
  * @brief	ISR function for each pin
  * @details	The function for pin x is at [x]
  */
-static void (*isrFunctions[30])(void) ;
+static void (*isrFunctions[30])(void);
 
 
 
@@ -140,6 +141,7 @@ pirror GIPY_pinUnexport(int pPin){
  *
  * @param pPin			Pin to set
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PERM		If pin not exported
  * @return GE_NOENT		If unable to open (Write) dir file
  * @return GE_PINDIR	If the pin direction is not valid
@@ -154,6 +156,7 @@ pirror GIPY_pinSetDirectionIn(int pPin){
  *
  * @param pPin			Pin to set
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PERM		If pin not exported
  * @return GE_NOENT		If unable to open (Write) dir file
  * @return GE_PINDIR	If the pin direction is not valid
@@ -168,6 +171,7 @@ pirror GIPY_pinSetDirectionOut(int pPin){
  *
  * @param pPin			Pin to set
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PERM		If pin not exported
  * @return GE_NOENT		If unable to open (Write) dir file
  * @return GE_PINDIR	If the pin direction is not valid
@@ -182,6 +186,7 @@ pirror GIPY_pinSetDirectionLow(int pPin){
  *
  * @param pPin			Pin to set
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PERM		If pin not exported
  * @return GE_NOENT		If unable to open (Write) dir file
  * @return GE_PINDIR	If the pin direction is not valid
@@ -198,6 +203,7 @@ pirror GIPY_pinSetDirectionHigh(int pPin){
  * @param pPin			Pin to set
  * @param pPinDir		Direction to set (From PinDirection enum)
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PERM		If pin not exported
  * @return GE_NOENT		If unable to open (Write) dir file
  * @return GE_PINDIR	If the pin direction is not valid
@@ -401,7 +407,7 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
  * @return GE_IO	If unable to read from value file
  */
 pirror GIPY_pinRead(int pPin, int *pRead){
-	dbgInfo("Try to read pin %d", pPin);
+	dbgInfo("Try to read pin %d (File: %d)", pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -435,11 +441,12 @@ pirror GIPY_pinRead(int pPin, int *pRead){
  * @param pPin			Pin number where to write
  * @param pValue		Value to set to this pin (should be from pinValue enum)
  * @return GE_OK		If no error
+ * @return GE_PIN		If pin number is not valid
  * @return GE_PINVAL	If pin value is not valid
  * @return GE_IO		If unable to read from value file
  */
 pirror GIPY_pinWrite(int pPin, pinValue pValue){
-	dbgInfo("Try to write %d in pin %d", pValue, pPin);
+	dbgInfo("Try to write %d in pin %d (File: %d)", pValue, pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -468,6 +475,69 @@ pirror GIPY_pinWrite(int pPin, pinValue pValue){
 	}
 	dbgInfo("Successfully written %d in pin %d", pValue, pPin);
 	return GE_OK;
+}
+
+
+//*****************************************************************************
+// Interrupt functions
+//*****************************************************************************
+/**
+ * @brief		Create an interrupt for specific pin
+ * @details		At most one interrupt can be created for a pin
+ * 				Attention: if this pin already got an interrupt set, it will 
+ * 				be lost and replaced by this new one
+ *
+ * @param
+ * @return GE_OK		If no error
+ * @return GE_PERM		If pin not exported
+ * @return GE_PINDIR	If the pin direction is not valid
+ */
+pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
+	dbgInfo("Try to create interrupt for pin %d", pPin);
+	
+	//Check wither pin is valid
+	if(isValidPinNumber(pPin)==FALSE){
+		dbgError("Invalid pin number: %d", pPin);
+		return GE_PIN;
+	}
+
+	//Pin must be enabled
+	if(valueFds[pPin] == -1){
+		dbgError("Try to set interrupt to unexported pin %d", pPin);
+		return GE_PERM;
+	}
+
+	pthread_t threadId;
+	isrFunctions[pPin] = function; //Change handler function
+	pthread_create(&threadId, NULL, pinInterruptHandler, pPin);
+}
+
+static void pinInterruptHandler(const int pPin){
+	dbgInfo("Start pinInterruptHandler for pin %d", pPin);
+	struct pollfd pollstruct;
+	pollstruct.fd		= valueFds[pPin];
+	pollstruct.events	= POLLPRI;
+	pollstruct.revents	= POLLPRI;
+
+	char buff;
+	for(;;){
+		dbgInfo("* Wait for event (pin: %d, df: %d)", pPin, pollstruct.fd);
+		//If the pin has been unexported since the interrupt creation
+		if(pollstruct.fd == -1){
+			dbgInfo("Attention: pin %d unexported will interrupt running", pPin);
+			break; //Stop interrupt handling
+		}
+
+		lseek(pollstruct.fd, 0, SEEK_SET);
+		int x = poll(&pollstruct, 0x00, -1);
+		if(x > 0){
+			//Dummy read to clear the interrupt
+			read(pollstruct.fd, &buff, 1);
+			lseek(pollstruct.fd, 0, SEEK_SET);
+			isrFunctions[pPin]();
+		}
+	}
+	dbgInfo("Error pinInterrupHandler for pin %d: end of function reached", pPin);
 }
 
 

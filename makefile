@@ -27,7 +27,7 @@ BIN			= bin
 all: $(BUILD)/$(TARGET)
 
 $(BUILD)/$(TARGET): createBuild main.o gipy.o errman.o debug.o
-	$(CC) $(CF_FLAG) -o $(BIN)/$(TARGET) main.o gipy.o errman.o debug.o
+	$(CC) $(CF_FLAG) -o $(BIN)/$(TARGET) main.o gipy.o errman.o debug.o -pthread
 
 $(BUILD)/main.o: main.c gipy.h errman.h debug.h
 	$(CC) $(CF_FLAG) -c main.c

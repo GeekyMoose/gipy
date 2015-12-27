@@ -18,6 +18,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <string.h>
+#include <poll.h> //For interrupt thread
 
 #include "errman.h" //Error management
 #include "debug.h" //Debug lib
@@ -26,8 +27,8 @@
 //*****************************************************************************
 // CONSTANTS
 //*****************************************************************************
-#define TRUE	1
-#define FALSE	0
+#define TRUE	(1==1)
+#define FALSE	(1==42)
 #define GPIO_PATH "/home/geekymoose/Documents/w-work/data/sys/class/gpio/"
 #define GPIO_PATH_EXPORT		GPIO_PATH"export"
 #define GPIO_PATH_UNEXPORT		GPIO_PATH"unexport"
@@ -45,8 +46,8 @@
 //*****************************************************************************
 /** @brief Describe the possible values of a GPIO pin */
 typedef enum {
-	LOGIC_ZERO = 0x00,
-	LOGIC_ONE = 0x01
+	LOGIC_ZERO	= 0x00,
+	LOGIC_ONE	= 0x01
 } pinValue;
 
 /** @brief Describe the possible pin direction of a GPIO pin */
@@ -80,6 +81,9 @@ pirror GIPY_pinSetEdge(int, pinEdge);
 
 pirror GIPY_pinRead(int, int*);
 pirror GIPY_pinWrite(int, pinValue);
+
+//Interrupt
+pirror GIPY_pinCreateInterrupt(int, void (*function)(void));
 
 #endif
 

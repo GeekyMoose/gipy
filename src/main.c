@@ -13,6 +13,8 @@
 #include <string.h>
 #include "gipy.h"
 
+// Prototypes
+void interruptHandlerTest();
 
 /**
  * Main function
@@ -51,6 +53,15 @@ int main(int argc, char **argv){
 	GIPY_pinSetEdgeFalling(pin);
 	GIPY_pinSetEdgeBoth(pin);
 
+	//Test interrupt
+	GIPY_pinCreateInterrupt(pin, interruptHandlerTest);
+
+	sleep(1);
+	GIPY_pinWrite(pin, LOGIC_ZERO);
+	GIPY_pinWrite(pin, LOGIC_ZERO);
+
+	while(1){
+	}
 
 	GIPY_pinUnexport(pin);
 
@@ -59,6 +70,9 @@ int main(int argc, char **argv){
 }
 
 
+void interruptHandlerTest(){
+	printf("InterruptHandlerTest - Called\n");
+}
 
 
 
