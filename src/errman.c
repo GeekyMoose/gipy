@@ -34,16 +34,3 @@ void printError(FILE *pStream, const char *fmt, ...){
 	va_end(args);
 }
 
-
-/**
- * @brief			Return pirror associated message
- *
- * @param pErrNb	Id of the error to get
- * @return			Pointer to the message
- */
-static char* getPirrorStr(int pErrNb){
-	switch (pErrNb){
-		return "Unable to enable the pin %d: invalid pin number";
-	}
-}
-

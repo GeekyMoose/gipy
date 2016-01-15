@@ -19,6 +19,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <poll.h> //For interrupt thread
+#include <pthread.h>
 
 #include "errman.h" //Error management
 #include "debug.h" //Debug lib

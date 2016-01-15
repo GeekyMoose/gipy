@@ -15,7 +15,7 @@
 // Privat header (Static function / Vars)
 //*****************************************************************************
 static int isValidPinNumber(const int);
-static void pinInterruptHandler(const int);
+static void *pinInterruptHandler(void*);
 
 
 /*
@@ -511,7 +511,8 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 
 	pthread_t threadId;
 	isrFunctions[pPin] = function; //Change handler function
-	pthread_create(&threadId, NULL, pinInterruptHandler, pPin);
+	pthread_create(&threadId, NULL, &pinInterruptHandler, &pPin);
+	return GE_OK;
 }
 
 /**
@@ -524,33 +525,36 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
  * @param			pin to link with an interrupt process
  * @return void
  */
-static void pinInterruptHandler(const int pPin){
-	dbgInfo("Start pinInterruptHandler for pin %d", pPin);
+static void *pinInterruptHandler(void *pPin){
+	int intPin = *(int *)pPin;
+	free(pPin);
+	dbgInfo("Start pinInterruptHandler for pin %d", intPin);
 	struct pollfd pollstruct;
-	pollstruct.fd		= valueFds[pPin];
+	pollstruct.fd		= valueFds[intPin];
 	pollstruct.events	= POLLPRI;
 	pollstruct.revents	= POLLPRI;
 
 	//Loop blocked by poll. Wait for any event and call function if interrupt
 	for(;;){
-		dbgInfo("* Wait for event (pin: %d, df: %d)", pPin, pollstruct.fd);
+		dbgInfo("* Wait for event (pin: %d, df: %d)", intPin, pollstruct.fd);
 		//If the pin has been unexported since the interrupt creation
 		if(pollstruct.fd == -1){
-			dbgInfo("Attention: pin %d unexported will interrupt running", pPin);
+			dbgInfo("Attention: pin %d unexported will interrupt running", intPin);
 			break; //Stop interrupt handling
 		}
 
 		//If an event is detected, call isr function
 		if(poll(&pollstruct, 1, -1) > 0){
-			dbgInfo("Poll pin %d, df %d", pPin, pollstruct.fd);
+			dbgInfo("Poll pin %d, df %d", intPin, pollstruct.fd);
 			//Dummy read to clear the interrupt
 			char buff;
 			read(pollstruct.fd, &buff, 1);
 			lseek(pollstruct.fd, 0, SEEK_SET);
-			isrFunctions[pPin]();
+			isrFunctions[intPin]();
 		}
 	}
-	dbgInfo("Error pinInterrupHandler for pin %d: end of function reached", pPin);
+	dbgInfo("Error pinInterrupHandler for pin %d: end of function reached", intPin);
+	return NULL;
 }
 
 

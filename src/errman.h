@@ -18,7 +18,6 @@
 // ****************************************************************************
 // Enum
 // ****************************************************************************
-
 /*
  * @brief Enum with all possible gipy error
  * GE for Gipy error (In case of you wonder, I had no better idee actually..)
@@ -36,6 +35,12 @@ typedef enum {
 	GE_PINDIR, //Invalid pin direction
 	GE_PINVAL //Invalid pin value
 } pirror;
+
+
+// ****************************************************************************
+// Prototypes
+// ****************************************************************************
+void printError(FILE *pStream, const char *fmt, ...);
 
 
 #endif
