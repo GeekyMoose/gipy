@@ -527,7 +527,6 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
  */
 static void *pinInterruptHandler(void *pPin){
 	int intPin = *(int *)pPin;
-	free(pPin);
 	dbgInfo("Start pinInterruptHandler for pin %d", intPin);
 	struct pollfd pollstruct;
 	pollstruct.fd		= valueFds[intPin];

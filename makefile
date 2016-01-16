@@ -17,16 +17,17 @@ BIN			= bin
 ###############################################################################
 # Launcher rules
 ###############################################################################
+.PHONY:all
 all: growthTree $(TARGET)
 
-$(TARGET): main.o gipy.o errman.o debug.o
+$(TARGET): secretcode.o gipy.o errman.o debug.o
 	$(CC) $(CF_FLAG) -o $(BIN)/$(TARGET) $^ -pthread
 
 
 ###############################################################################
 # Build Rules for GIPY Lib
 ###############################################################################
-main.o: main.c gipy.h
+secretcode.o: secretcode.c gipy.h
 	$(CC) $(CF_FLAG) -c $<
 
 gipy.o: gipy.c gipy.h errman.h debug.h
@@ -43,12 +44,18 @@ debug.o: debug.c debug.h
 # Annexe functions
 ###############################################################################
 # Create the generated folders
+.PHONY: growthTree
 growthTree:
 	@mkdir -p bin
 
+.PHONY: clean
 clean:
 	-rm -rf bin
 	-rm -r *.o
 	-rm -f *.exe
 	-rm *.out
+
+.PHONY: run
+run:
+	$(BIN)/$(TARGET)
 
