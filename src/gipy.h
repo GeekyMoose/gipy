@@ -20,6 +20,7 @@
 #include <string.h>
 #include <poll.h> //For interrupt thread
 #include <pthread.h>
+#include <stdint.h> //Used for pointer convert
 
 #include "errman.h" //Error management
 #include "debug.h" //Debug lib

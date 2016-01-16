@@ -511,7 +511,7 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 
 	pthread_t threadId;
 	isrFunctions[pPin] = function; //Change handler function
-	pthread_create(&threadId, NULL, &pinInterruptHandler, &pPin);
+	pthread_create(&threadId, NULL, &pinInterruptHandler, (void *)(intptr_t)pPin);
 	return GE_OK;
 }
 
@@ -526,7 +526,7 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
  * @return void
  */
 static void *pinInterruptHandler(void *pPin){
-	int intPin = *(int *)pPin;
+	int intPin = (intptr_t)pPin;
 	dbgInfo("Start pinInterruptHandler for pin %d", intPin);
 	struct pollfd pollstruct;
 	pollstruct.fd		= valueFds[intPin];
