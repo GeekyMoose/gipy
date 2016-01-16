@@ -31,7 +31,7 @@
 //*****************************************************************************
 #define TRUE	(1==1)
 #define FALSE	(1==42)
-#define GPIO_PATH "/home/geekymoose/Documents/w-work/data/sys/class/gpio/"
+#define GPIO_PATH "/sys/class/gpio/"
 #define GPIO_PATH_EXPORT		GPIO_PATH"export"
 #define GPIO_PATH_UNEXPORT		GPIO_PATH"unexport"
 #define GPIO_PATH_DIRECTION		GPIO_PATH"gpio%d/direction"

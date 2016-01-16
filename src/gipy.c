@@ -69,14 +69,14 @@ pirror GIPY_pinExport(int pPin){
 	//Write into file that this pin is set
 	char tamp[3];
 	sprintf(tamp, "%d", pPin);
-	if(write(file, tamp, 3) != 3){
+	if(write(file, tamp, sizeof(pPin)) != sizeof(pPin)){
 		dbgError("Unable to write %d in file: "GPIO_PATH_EXPORT, pPin);
 		close(file);
 		return GE_IO;
 	}
-	close(file);
+	close(file); //This close the export file
 
-	//Open the value file
+	//Open the value file (And keep it open in valueFds array)
 	char stamp[BUFSIZ];
 	sprintf(stamp, GPIO_PATH_VALUE, pPin);
 	file = open(stamp, O_RDWR);
@@ -85,7 +85,7 @@ pirror GIPY_pinExport(int pPin){
 		return GE_PERM;
 	}
 	valueFds[pPin] = file; //Keep in memory the value file for this pin
-	dbgInfo("Pin %d enabled", pPin);
+	dbgInfo("Pin %d enabled (fd: %d)", pPin, file);
 	return GE_OK;
 }
 
@@ -117,7 +117,7 @@ pirror GIPY_pinUnexport(int pPin){
 	//Write this pin in unexport file
 	char tamp[3];
 	sprintf(tamp, "%d", pPin);
-	if(write(file, tamp, 3) != 3){
+	if(write(file, tamp, sizeof(tamp)) != sizeof(tamp)){
 		dbgError("Unable to write %d in export file: "GPIO_PATH_UNEXPORT, pPin);
 		close(file);
 		return GE_IO;
@@ -126,9 +126,8 @@ pirror GIPY_pinUnexport(int pPin){
 
 	//Close the value file descriptor for this pin
 	close(valueFds[pPin]);
+	dbgInfo("Pin %d disabled (fd: %d)", pPin, valueFds[pPin]);
 	valueFds[pPin] = -1;
-
-	dbgInfo("Pin %d disabled", pPin);
 	return GE_OK;
 }
 
@@ -220,7 +219,7 @@ pirror GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
 
 	//Pin must be enabled
 	if(valueFds[pPin] == -1){
-		dbgError("Try to set dir %d to unexported pin %d", pPinDir,  pPin);
+		dbgError("Try to set a dirrection to unexported pin %d", pPin);
 		return GE_PERM;
 	}
 
@@ -237,13 +236,13 @@ pirror GIPY_pinSetDirection(int pPin, pinDirection pPinDir){
 	int writeError;
 	switch(pPinDir){
 		case IN:
-			writeError = (write(file, "in  ", 4) == 4) ? 1 : -1;
+			writeError = (write(file, "in", 2) == 2) ? 1 : -1;
 			break;
 		case OUT:
-			writeError = (write(file, "out ", 4) == 4) ? 1 : -1;
+			writeError = (write(file, "out", 3) == 3) ? 1 : -1;
 			break;
 		case LOW:
-			writeError = (write(file, "low ", 4) == 4) ? 1 : -1;
+			writeError = (write(file, "low", 3) == 3) ? 1 : -1;
 			break;
 		case HIGH:
 			writeError = (write(file, "high", 4) == 4) ? 1 : -1;
@@ -369,16 +368,16 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
 	//NOTE: the spaces are important to delete old content (Might be a better way)
 	switch(pEdge){
 		case RISING:
-			writeError = (write(file, "rising ", 7) == 7) ? 1 : 0;
+			writeError = (write(file, "rising", 6) == 6) ? 1 : 0;
 			break;
 		case FALLING:
 			writeError = (write(file, "falling", 7) == 7) ? 1 : 0;
 			break;
 		case BOTH:
-			writeError = (write(file, "both   ", 7) == 7) ? 1 : 0;
+			writeError = (write(file, "both", 4) == 4) ? 1 : 0;
 			break;
 		default:
-			writeError = (write(file, "none   ", 7) == 7) ? 1 : 0;
+			writeError = (write(file, "none", 4) == 4) ? 1 : 0;
 			break;
 	}
 
@@ -408,7 +407,7 @@ pirror GIPY_pinSetEdge(int pPin, pinEdge pEdge){
  * @return GE_IO	If unable to read from value file
  */
 pirror GIPY_pinRead(int pPin, int *pRead){
-	dbgInfo("Try to read pin %d (df: %d)", pPin, valueFds[pPin]);
+	dbgInfo("Try to read pin %d (fd: %d)", pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -447,7 +446,7 @@ pirror GIPY_pinRead(int pPin, int *pRead){
  * @return GE_IO		If unable to read from value file
  */
 pirror GIPY_pinWrite(int pPin, pinValue pValue){
-	dbgInfo("Try to write %d in pin %d (df: %d)", pValue, pPin, valueFds[pPin]);
+	dbgInfo("Try to write %d in pin %d (fd: %d)", pValue, pPin, valueFds[pPin]);
 
 	//Check if pin is valid
 	if(isValidPinNumber(pPin)==FALSE){
@@ -528,10 +527,9 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 static void *pinInterruptHandler(void *pPin){
 	int intPin = (intptr_t)pPin;
 	dbgInfo("Start pinInterruptHandler for pin %d", intPin);
-	struct pollfd pollstruct;
+	struct pollfd		pollstruct;
 	pollstruct.fd		= valueFds[intPin];
 	pollstruct.events	= POLLPRI;
-	pollstruct.revents	= POLLPRI;
 
 	//Loop blocked by poll. Wait for any event and call function if interrupt
 	for(;;){
