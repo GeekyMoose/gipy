@@ -38,7 +38,7 @@
 #define GPIO_PATH_VALUE			GPIO_PATH"gpio%d/value"
 
 //Pin management
-#define PINS_AVAILABLE 2,3,4,7,8,9,10,11,14,15,17,18,22,23,24,25,27
+#define PINS_AVAILABLE 0,1,17,21,22,10,9,11,14,15,18,23,24,25,8,7
 #define NB_PINS 17
 
 
