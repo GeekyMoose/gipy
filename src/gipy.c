@@ -508,6 +508,7 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
 		return GE_PERM;
 	}
 
+	//Create a thread which check for event. The function isr is saved
 	pthread_t threadId;
 	isrFunctions[pPin] = function; //Change handler function
 	pthread_create(&threadId, NULL, &pinInterruptHandler, (void *)(intptr_t)pPin);
@@ -526,6 +527,7 @@ pirror GIPY_pinCreateInterrupt(int pPin, void (*function)(void)){
  */
 static void *pinInterruptHandler(void *pPin){
 	int intPin = (intptr_t)pPin;
+	char buff[2];
 	dbgInfo("Start pinInterruptHandler for pin %d", intPin);
 	struct pollfd		pollstruct;
 	pollstruct.fd		= valueFds[intPin];
@@ -542,12 +544,13 @@ static void *pinInterruptHandler(void *pPin){
 
 		//If an event is detected, call isr function
 		if(poll(&pollstruct, 1, -1) > 0){
-			dbgInfo("Poll pin %d, df %d", intPin, pollstruct.fd);
-			//Dummy read to clear the interrupt
-			char buff;
-			read(pollstruct.fd, &buff, 1);
-			lseek(pollstruct.fd, 0, SEEK_SET);
-			isrFunctions[intPin]();
+			if(pollstruct.revents & POLLPRI){
+				//Dummy read to clear the interrupt
+				read(pollstruct.fd, buff, 2);
+				lseek(pollstruct.fd, 0, SEEK_SET);
+				dbgInfo("Poll pin %d, df %d", intPin, pollstruct.fd);
+				isrFunctions[intPin]();
+			}
 		}
 	}
 	dbgInfo("Error pinInterrupHandler for pin %d: end of function reached", intPin);

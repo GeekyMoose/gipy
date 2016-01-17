@@ -38,9 +38,9 @@
 #define GPIO_PATH_EDGE			GPIO_PATH"gpio%d/edge"
 #define GPIO_PATH_VALUE			GPIO_PATH"gpio%d/value"
 
-//Pin management
-#define PINS_AVAILABLE 0,1,17,21,22,10,9,11,14,15,18,23,24,25,8,7
-#define NB_PINS 17
+//This list of pins accept the Raspberry Pi Model B Revision 1 and 2
+#define PINS_AVAILABLE 0,1,2,3,4,7,8,9,10,11,14,15,17,18,21,22,23,24,25,27
+#define NB_PINS 20 //Actually 17, but this mixt R1 and R2
 
 
 //*****************************************************************************
