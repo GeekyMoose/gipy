@@ -10,7 +10,7 @@ CC			= $(CROSS_COMPILER)gcc
 CF_FLAG		= -Wall -g
 VPATH		= src examples
 
-TARGET		= execGipy
+TARGET		= execTicTacBoom
 BIN			= bin
 
 
@@ -20,14 +20,14 @@ BIN			= bin
 .PHONY:all
 all: growthTree $(TARGET)
 
-$(TARGET): secretcode.o gipy.o errman.o debug.o
+$(TARGET): tictacboom.o gipy.o errman.o debug.o
 	$(CC) $(CF_FLAG) -o $(BIN)/$(TARGET) $^ -pthread
 
 
 ###############################################################################
 # Build Rules for GIPY Lib
 ###############################################################################
-secretcode.o: secretcode.c gipy.h
+tictacboom.o: tictacboom.c gipy.h
 	$(CC) $(CF_FLAG) -c $<
 
 gipy.o: gipy.c gipy.h errman.h debug.h
