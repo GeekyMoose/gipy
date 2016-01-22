@@ -2,13 +2,6 @@
 #
 # Display the status of one GPIO
 
-# Check whether parameter is valid
-isValidParameter(){
-	if [[ $# -lt 1 ]];then
-		echo "One or more pin must be given"
-		exit 1
-	fi
-}
 
 # Display data for one pin
 displayDataPin(){
@@ -16,7 +9,7 @@ displayDataPin(){
 		echo "***** Pin $1 *****"
 		echo "Not exported yet"
 		echo "***** *****"
-		exit 1
+		return #Leave function
 	fi
 
 	echo "***** Pin $1 *****"
@@ -24,6 +17,14 @@ displayDataPin(){
 	echo Edge: `cat /sys/class/gpio/gpio$1/edge`
 	echo Value: `cat /sys/class/gpio/gpio$1/value`
 	echo "***** *****"
+}
+
+# Check whether parameter is valid
+isValidParameter(){
+	if [[ $# -lt 1 ]];then
+		echo "One or more pin must be given"
+		exit 1
+	fi
 }
 
 # Launch program 
