@@ -533,6 +533,7 @@ static void *pinInterruptHandler(void *pPin){
 	pollstruct.fd		= valueFds[intPin];
 	pollstruct.events	= POLLPRI;
 
+	sleep(1);
 	//Loop blocked by poll. Wait for any event and call function if interrupt
 	for(;;){
 		dbgInfo("* Wait for event (pin: %d, df: %d)", intPin, pollstruct.fd);
@@ -550,6 +551,17 @@ static void *pinInterruptHandler(void *pPin){
 				lseek(pollstruct.fd, 0, SEEK_SET);
 				dbgInfo("Poll pin %d, df %d", intPin, pollstruct.fd);
 				isrFunctions[intPin]();
+
+				/*
+				 * WARNING: Because of electronique behavior, when the button 
+				 * is pushed down, the signal is 'disturbed' and several 
+				 * poll could be catch till the signal is stable. 
+				 * In order to avoid this, the delay prevent poll to be called 
+				 * again to early. 
+				 * Some miliseconds should be enough to evoid loosing another 
+				 * interrupt even and avoid this issue.
+				 */
+				usleep(200);
 			}
 		}
 	}
