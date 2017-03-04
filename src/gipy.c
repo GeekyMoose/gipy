@@ -4,7 +4,7 @@
  * Manage Raspberry Pi GPIO
  *
  * Since:   Nov 29, 2015
- * Author:  Constantin MASSON <massonco@iro.umontreal.ca>
+ * Author:  Constantin MASSON
  * -----------------------------------------------------------------------------
  */
 

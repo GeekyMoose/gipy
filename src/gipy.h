@@ -3,8 +3,8 @@
  * GIPY Library Header
  * Manage Raspberry Pi GPIO
  *
- * Since        Nov 29, 2015
- * Author:  Constantin MASSON <massonco@iro.umontreal.ca>
+ * Since:   Nov 29, 2015
+ * Author:  Constantin MASSON
  * -----------------------------------------------------------------------------
  */
 
